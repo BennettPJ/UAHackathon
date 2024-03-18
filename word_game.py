@@ -15,20 +15,24 @@ class WordChainGame:
         self.letter_limit = self.min_letters
         self.turn_counter = 0
         self.used_words = set()  # Set to track previously used words
-        self.valid_words = self.load_word_list()  # Load the English word list here
+        self.common_valid_words, self.all_valid_words = self.load_word_list()  # Load the English word list here
 
 
     def load_word_list(self):
-        filename = 'english_words.txt'  # Adjust if your file is located differently
-        word_set = set()  # Initialize an empty set to ensure we return a set no matter what
+        filename1 = 'common_english_words.txt' 
+        filename2 = 'all_english_words.txt'
+        word_set1 = set()  # Initialize an empty set to ensure we return a set no matter what
+        word_set2 = set() # Initialize an empty set to ensure we return a set no matter what
         try:
-            with open(filename, 'r') as file:
-                word_set = {word.strip().lower() for word in file}
+            with open(filename1, 'r') as file:
+                word_set1 = {word.strip().lower() for word in file}
+            with open(filename2, 'r') as file:
+                word_set2 = {word.strip().lower() for word in file}
         except FileNotFoundError:
-            print(f"The file {filename} was not found. Please make sure it's in the correct directory.")
+            print(f"The file {filename1} or {filename2} was not found. Please make sure it's in the correct directory.")
         except Exception as e:
             print(f"An error occurred while loading the word list: {e}")
-        return word_set  # Ensure we return a set, even if it's empty
+        return word_set1, word_set2  # Ensure we return a set, even if it's empty
             
             
     def add_player(self, player_name):
@@ -52,14 +56,16 @@ class WordChainGame:
         return False, f"Invalid word or word too short. {self.players[self.current_player_index]} loses!"
 
     def get_random_word(self):
-        valid_starting_words = [word for word in self.valid_words if len(word) >= 4]
+        valid_starting_words = [word for word in self.common_valid_words if len(word) >= 4]
+        #we want to start with a common word that people will recognize
         return random.choice(valid_starting_words)
 
     def is_valid_word(self, word):
         if (len(word) < self.min_letters or
             word[0] != self.word_chain[-1][-1] or
             word in self.used_words or
-            word.lower() not in self.valid_words):  # Check if the word is in the valid words list
+            (word.lower() not in self.all_valid_words and word.lower not in self.common_valid_words)):  # Check if the word is in the valid words list
+            #we want to have double checking just to be extra sure that the word is valid (since these are open source lists)
             return False
         return True
     
@@ -70,8 +76,25 @@ class WordChainGameGUI:
         self.game = WordChainGame()
         self.master.title("Word Chain Game")
         self.timer_update_interval = 100  # milliseconds to update the timer
-        self.setup_widgets()
-        self.start_game()
+        self.setup_start_screen()
+
+    def setup_start_screen(self):
+        self.start_frame = tk.Frame(self.master)
+        self.start_frame.pack(fill=tk.BOTH, expand=True)
+
+        self.start_label = tk.Label(self.start_frame, text="Game tarting in 5 seconds...", font=("Helvetica", 24))
+        self.start_label.pack(pady=20)
+
+        self.countdown(5)
+
+    def countdown(self, count):
+        if count > 0:
+            self.start_label.config(text=f"Game starting in {count} seconds...")
+            self.master.after(1000, self.countdown, count - 1)
+        else:
+            self.start_frame.destroy()
+            self.setup_widgets()
+            self.start_game()
 
     def setup_widgets(self):
         self.lbl_info = tk.Label(self.master, text="Welcome to the Word Chain Game!", font=("Helvetica", 14))
