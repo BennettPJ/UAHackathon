@@ -64,7 +64,7 @@ class WordChainGame:
         if (len(word) < self.min_letters or
             word[0] != self.word_chain[-1][-1] or
             word in self.used_words or
-            (word.lower() not in self.all_valid_words and word.lower not in self.common_valid_words)):  # Check if the word is in the valid words list
+            (word.lower() not in self.all_valid_words and word.lower() not in self.common_valid_words)):  # Check if the word is in the valid words list
             #we want to have double checking just to be extra sure that the word is valid (since these are open source lists)
             return False
         return True
@@ -132,8 +132,6 @@ class WordChainGameGUI:
         else:
             self.opt_menu_players.configure(state="normal")
             self.lbl_select_players.configure(fg="white")  # Optional: revert label color
-
-
 
     def handle_player_selection(self):
         self.num_players = self.selected_num_players.get() if self.game_mode.get() == "PvP" else 1
