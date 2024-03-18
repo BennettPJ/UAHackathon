@@ -1,4 +1,3 @@
-#pip install nltk
 import tkinter as tk
 from tkinter import ttk, messagebox
 import random
@@ -97,6 +96,28 @@ class WordChainGameGUI:
             self.start_frame.destroy()
             self.setup_widgets()
             self.start_game()
+            
+    def reset_game(self):
+        """Reset the game to its initial setup screen."""
+        # Properly handling the pack_forget to ensure we don't call it on non-existing attributes
+        for widget in self.master.winfo_children():
+            widget.destroy()
+        self.game = WordChainGame()  # Reinitialize the game
+        self.setup_player_selection_screen()
+        
+    def show_game_over_dialog(self, message):
+        """Display a custom game over dialog."""
+        dialog = tk.Toplevel(self.master)
+        dialog.title("Game Over")
+        dialog.geometry("+{}+{}".format(self.master.winfo_rootx()+50, self.master.winfo_rooty()+50))
+
+        tk.Label(dialog, text=message, font=("Helvetica", 16)).pack(pady=20)
+
+        play_again_button = tk.Button(dialog, text="Play Again", command=lambda: [dialog.destroy(), self.reset_game()])
+        play_again_button.pack(side="left", padx=(20, 10), pady=20)
+
+        quit_button = tk.Button(dialog, text="Quit", command=lambda: [dialog.destroy(), self.master.quit()])
+        quit_button.pack(side="right", padx=(10, 20), pady=20)
             
     def setup_player_selection_screen(self):
         self.player_selection_frame = tk.Frame(self.master)
@@ -199,8 +220,8 @@ class WordChainGameGUI:
             self.update_ui()
         else:
             # Handle situation where computer can't find a word
-            messagebox.showinfo("Game Over", "Computer can't find a valid word. You win!")
-            self.master.destroy()
+            error_msg = f"Computer can't find a valid word. {self.game.players[self.game.current_player_index]} wins!"
+            self.show_game_over_dialog(error_msg)
 
     def start_timer(self):
         self.progress_bar['value'] = 0
@@ -214,8 +235,8 @@ class WordChainGameGUI:
             self.master.after(self.timer_update_interval, self.update_timer)
         else:
             self.progress_bar['value'] = self.game.time_limit
-            messagebox.showinfo("Time's up!", f"You took too long. {self.game.players[self.game.current_player_index]} loses!")
-            self.master.destroy()
+            error_msg = f"Time's up! \n You took too long. {self.game.players[self.game.current_player_index]} loses!"
+            self.show_game_over_dialog(error_msg)
 
     def submit_word(self, event=None):  # Add event=None to handle the keyboard event
         self.master.after_cancel(self.update_timer)  # Stop the timer
@@ -227,8 +248,8 @@ class WordChainGameGUI:
         if valid:
             self.update_ui()
         else:
-            messagebox.showinfo("Game Over", message)
-            self.master.destroy()
+            error_msg = f"Game over \n {message}"
+            self.show_game_over_dialog(error_msg)
 
 def main():
     root = tk.Tk()
