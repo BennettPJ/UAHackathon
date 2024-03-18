@@ -77,7 +77,7 @@ class WordChainGameGUI:
         self.master.title("Word Chain Game")
         self.timer_update_interval = 100  # milliseconds to update the timer
         self.computer_response_base_time = 0.1  # Base response time for computer in seconds
-        self.computer_response_time_increment = 0.1  # Time increment per turn
+        self.computer_response_time_increment = 0.3  # Time increment per turn
         self.setup_player_selection_screen()
 
     def setup_start_screen(self):
@@ -139,13 +139,13 @@ class WordChainGameGUI:
         self.setup_start_screen()
 
     def setup_widgets(self):
-        self.lbl_info = tk.Label(self.master, text="Welcome to the Word Chain Game!", font=("Helvetica", 14))
+        self.lbl_info = tk.Label(self.master, text="Welcome to the Word Chain Game!", font=("Helvetica", 17))
         self.lbl_info.pack(pady=10)
 
-        self.lbl_current_word = tk.Label(self.master, text="Starting word: ", font=("Helvetica", 12))
+        self.lbl_current_word = tk.Label(self.master, text="Starting word: ", font=("Helvetica", 17))
         self.lbl_current_word.pack(pady=5)
 
-        self.lbl_min_letters = tk.Label(self.master, text="Minimum letters required: 3", font=("Helvetica", 12))
+        self.lbl_min_letters = tk.Label(self.master, text="Minimum letters required: 3", font=("Helvetica", 17))
         self.lbl_min_letters.pack(pady=(0, 5))
 
         self.entry_word = tk.Entry(self.master, font=("Helvetica", 12))
@@ -155,7 +155,7 @@ class WordChainGameGUI:
         self.btn_submit = tk.Button(self.master, text="Submit", command=self.submit_word)
         self.btn_submit.pack(pady=5)
 
-        self.lbl_timer = tk.Label(self.master, text="Time left:", font=("Helvetica", 12))
+        self.lbl_timer = tk.Label(self.master, text="Time left:", font=("Helvetica", 15))
         self.lbl_timer.pack(pady=(10, 0))
 
         self.progress_bar = ttk.Progressbar(self.master, orient="horizontal", length=200, mode="determinate")
