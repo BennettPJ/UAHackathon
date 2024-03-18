@@ -76,6 +76,8 @@ class WordChainGameGUI:
         self.game = WordChainGame()
         self.master.title("Word Chain Game")
         self.timer_update_interval = 100  # milliseconds to update the timer
+        self.computer_response_base_time = 0.1  # Base response time for computer in seconds
+        self.computer_response_time_increment = 0.1  # Time increment per turn
         self.setup_player_selection_screen()
 
     def setup_start_screen(self):
@@ -100,20 +102,41 @@ class WordChainGameGUI:
         self.player_selection_frame = tk.Frame(self.master)
         self.player_selection_frame.pack(fill=tk.BOTH, expand=True)
 
+        # Label and option menu for selecting the number of players
         self.lbl_select_players = tk.Label(self.player_selection_frame, text="Select the number of players (2-10):", font=("Helvetica", 16))
         self.lbl_select_players.pack(pady=10)
 
         self.selected_num_players = tk.IntVar(value=2)  # Default to 2 players
         self.player_options = [str(num) for num in range(2, 11)]  # Options for 2 to 10 players
-
         self.opt_menu_players = tk.OptionMenu(self.player_selection_frame, self.selected_num_players, *self.player_options)
         self.opt_menu_players.pack(pady=20)
 
-        self.btn_start = tk.Button(self.player_selection_frame, text="Submit", command=self.handle_player_selection)
+        # Game mode selection (Player vs. Player or Player vs. Computer)
+        tk.Label(self.player_selection_frame, text="Game Mode:", font=("Helvetica", 16)).pack(pady=(5, 0))
+        self.game_mode = tk.StringVar(value="PvP")  # Default game mode to Player vs. Player
+        self.game_modes = ["PvP", "PvC"]  # PvP: Player vs. Player, PvC: Player vs. Computer
+        game_mode_option_menu = tk.OptionMenu(self.player_selection_frame, self.game_mode, *self.game_modes)
+        game_mode_option_menu.pack(pady=10)
+
+        # Submit button to proceed based on selections
+        self.btn_start = tk.Button(self.player_selection_frame, text="Start Game", command=self.handle_player_selection)
         self.btn_start.pack(pady=10)
 
+        # Trace on game_mode variable to enable/disable player selection based on the game mode
+        self.game_mode.trace("w", self.update_player_selection_status)
+
+    def update_player_selection_status(self, *args):
+        if self.game_mode.get() == "PvC":
+            self.opt_menu_players.configure(state="disabled")
+            self.lbl_select_players.configure(fg="grey")  # Optional: change label color to indicate disabled state
+        else:
+            self.opt_menu_players.configure(state="normal")
+            self.lbl_select_players.configure(fg="white")  # Optional: revert label color
+
+
+
     def handle_player_selection(self):
-        self.num_players = self.selected_num_players.get()
+        self.num_players = self.selected_num_players.get() if self.game_mode.get() == "PvP" else 1
         self.player_selection_frame.destroy()
         self.setup_start_screen()
 
@@ -146,8 +169,13 @@ class WordChainGameGUI:
     def start_game(self):
         self.game.players.clear()  # Clear the players list in case there is any residual data
         # Add the selected number of players
-        for player_num in range(1, self.num_players + 1):
-            self.game.add_player(f"Player {player_num}")
+        # Adjust based on game mode
+        if self.game_mode.get() == "PvP":
+            for player_num in range(1, self.num_players + 1):
+                self.game.add_player(f"Player {player_num}")
+        else:
+            self.game.add_player("Player 1")
+            self.game.add_player("Computer")
         self.game.start_game()
         self.update_ui()
 
@@ -159,6 +187,22 @@ class WordChainGameGUI:
         self.start_time = time.time()
         self.entry_word.focus()
         self.start_timer()
+        if self.game_mode.get() == "PvC" and self.game.players[self.game.current_player_index] == "Computer":
+            self.master.after(int(self.computer_response_base_time * 1000), self.computer_turn)
+            
+    def computer_turn(self):
+        # Logic for the computer to pick a word
+        last_word = self.game.word_chain[-1]
+        possible_words = [word for word in self.game.common_valid_words if word.startswith(last_word[-1]) and word not in self.game.used_words]
+        if possible_words:
+            chosen_word = random.choice(possible_words)
+            self.game.process_turn(chosen_word)
+            self.computer_response_base_time += self.computer_response_time_increment  # Increment response time
+            self.update_ui()
+        else:
+            # Handle situation where computer can't find a word
+            messagebox.showinfo("Game Over", "Computer can't find a valid word. You win!")
+            self.master.destroy()
 
     def start_timer(self):
         self.progress_bar['value'] = 0
