@@ -76,7 +76,7 @@ class WordChainGameGUI:
         self.game = WordChainGame()
         self.master.title("Word Chain Game")
         self.timer_update_interval = 100  # milliseconds to update the timer
-        self.setup_start_screen()
+        self.setup_player_selection_screen()
 
     def setup_start_screen(self):
         self.start_frame = tk.Frame(self.master)
@@ -95,6 +95,27 @@ class WordChainGameGUI:
             self.start_frame.destroy()
             self.setup_widgets()
             self.start_game()
+            
+    def setup_player_selection_screen(self):
+        self.player_selection_frame = tk.Frame(self.master)
+        self.player_selection_frame.pack(fill=tk.BOTH, expand=True)
+
+        self.lbl_select_players = tk.Label(self.player_selection_frame, text="Select the number of players (2-10):", font=("Helvetica", 16))
+        self.lbl_select_players.pack(pady=10)
+
+        self.selected_num_players = tk.IntVar(value=2)  # Default to 2 players
+        self.player_options = [str(num) for num in range(2, 11)]  # Options for 2 to 10 players
+
+        self.opt_menu_players = tk.OptionMenu(self.player_selection_frame, self.selected_num_players, *self.player_options)
+        self.opt_menu_players.pack(pady=20)
+
+        self.btn_start = tk.Button(self.player_selection_frame, text="Submit", command=self.handle_player_selection)
+        self.btn_start.pack(pady=10)
+
+    def handle_player_selection(self):
+        self.num_players = self.selected_num_players.get()
+        self.player_selection_frame.destroy()
+        self.setup_start_screen()
 
     def setup_widgets(self):
         self.lbl_info = tk.Label(self.master, text="Welcome to the Word Chain Game!", font=("Helvetica", 14))
@@ -123,8 +144,10 @@ class WordChainGameGUI:
         self.lbl_status.pack(pady=5)
 
     def start_game(self):
-        self.game.add_player("Player 1")
-        self.game.add_player("Player 2")
+        self.game.players.clear()  # Clear the players list in case there is any residual data
+        # Add the selected number of players
+        for player_num in range(1, self.num_players + 1):
+            self.game.add_player(f"Player {player_num}")
         self.game.start_game()
         self.update_ui()
 
