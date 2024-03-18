@@ -213,8 +213,18 @@ class WordChainGameGUI:
         # Logic for the computer to pick a word
         last_word = self.game.word_chain[-1]
         possible_words = [word for word in self.game.common_valid_words if word.startswith(last_word[-1]) and word not in self.game.used_words]
-        if possible_words:
-            chosen_word = random.choice(possible_words)
+        
+        # Simulate a limited vocabulary by randomly reducing the list of possible words
+        vocabulary_limit_factor = 0.5  # Keep 50% of the possible words
+        limited_vocabulary_size = int(len(possible_words) * vocabulary_limit_factor)
+        if limited_vocabulary_size > 0:
+            # Ensure there's at least one word to choose from
+            limited_possible_words = random.sample(possible_words, limited_vocabulary_size)
+        else:
+            limited_possible_words = possible_words
+
+        if limited_possible_words:
+            chosen_word = random.choice(limited_possible_words)
             self.game.process_turn(chosen_word)
             self.computer_response_base_time += self.computer_response_time_increment  # Increment response time
             self.update_ui()
